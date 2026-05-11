@@ -8,4 +8,4 @@ services:
       CLIPMATE_TOKEN: "${CLIPMATE_TOKEN}"
       CLIPMATE_MAX_BYTES: "524288"
     ports:
-      - "8080:8080"
+      - "9673:8080"

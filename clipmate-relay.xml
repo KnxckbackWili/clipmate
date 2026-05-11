@@ -11,7 +11,7 @@
   <Project>https://github.com/KnxckbackWili/clipmate</Project>
   <Overview>Lightweight clipboard relay for Mac and Windows clients, with a web control panel.</Overview>
   <Category>Productivity:</Category>
-  <WebUI>http://[IP]:[PORT:8080]/</WebUI>
+  <WebUI>http://[IP]:[PORT:9673]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/KnxckbackWili/clipmate/main/clipmate-relay.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/selfhosters/unRAID-CA-templates/master/templates/img/clipboard.png</Icon>
   <ExtraParams/>
@@ -21,7 +21,7 @@
   <DonateText/>
   <DonateLink/>
   <Requires/>
-  <Config Name="Web UI Port" Target="8080" Default="8080" Mode="tcp" Description="Relay and web UI port." Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+  <Config Name="Web UI Port" Target="8080" Default="9673" Mode="tcp" Description="Relay and web UI host port. Container port stays 8080." Type="Port" Display="always" Required="true" Mask="false">9673</Config>
   <Config Name="Token" Target="CLIPMATE_TOKEN" Default="" Mode="" Description="Long random shared token used by the web UI and all clients." Type="Variable" Display="always" Required="true" Mask="true"/>
   <Config Name="Max Clipboard Bytes" Target="CLIPMATE_MAX_BYTES" Default="524288" Mode="" Description="Maximum text clipboard payload size." Type="Variable" Display="advanced" Required="true" Mask="false">524288</Config>
 </Container>

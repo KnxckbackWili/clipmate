@@ -49,7 +49,7 @@ https://github.com/KnxckbackWili/clipmate
 https://raw.githubusercontent.com/KnxckbackWili/clipmate/main/clipmate-relay.xml
 ```
 
-之后安装时只需要填 `Token`，端口默认 `8080`。更详细说明在 [unraid/README.md](/Users/knxckbackwili/Documents/New%20project/unraid/README.md)。
+之后安装时只需要填 `Token`，外部端口默认 `9673`。更详细说明在 [unraid/README.md](/Users/knxckbackwili/Documents/New%20project/unraid/README.md)。
 
 ### 一条命令部署
 
@@ -70,7 +70,7 @@ chmod +x unraid/install.sh
 脚本会自动生成 `.env` 里的 token，构建 Docker 镜像，并启动服务。启动后打开：
 
 ```text
-http://你的-unraid-ip:8080/
+http://你的-unraid-ip:9673/
 ```
 
 这个页面就是 ClipMate 的 Web 图形界面，可以查看设备状态、最近同步信息，并对每台设备开关同步。
@@ -98,19 +98,19 @@ docker compose up -d --build
 健康检查：
 
 ```bash
-curl http://你的-unraid-ip:8080/health
+curl http://你的-unraid-ip:9673/health
 ```
 
 Web 图形界面：
 
 ```text
-http://你的-unraid-ip:8080/
+http://你的-unraid-ip:9673/
 ```
 
-公网使用时，建议把 `8080` 放在反代后面，例如：
+公网使用时，建议把 `9673` 放在反代后面，例如：
 
 ```text
-https://clip.example.com -> http://unraid-ip:8080
+https://clip.example.com -> http://unraid-ip:9673
 ```
 
 不要直接裸奔 HTTP 暴露到公网。剪切板通常有密码、验证码、私密文本，HTTPS 很重要。
@@ -138,7 +138,7 @@ chmod +x install_launch_agent.sh uninstall_launch_agent.sh clipmate.py
 如果你还没配 HTTPS，只在内网测试，可以临时用：
 
 ```bash
-./install_launch_agent.sh "http://unraid-ip:8080" "你的长token" "home"
+./install_launch_agent.sh "http://unraid-ip:9673" "你的长token" "home"
 ```
 
 查看日志：
@@ -173,7 +173,7 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 如果还没配 HTTPS，只在内网测试，可以临时用：
 
 ```powershell
-.\install_scheduled_task.ps1 -Server "http://unraid-ip:8080" -Token "你的长token" -Room "home"
+.\install_scheduled_task.ps1 -Server "http://unraid-ip:9673" -Token "你的长token" -Room "home"
 ```
 
 查看任务：

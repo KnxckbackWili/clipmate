@@ -34,4 +34,4 @@ docker compose up -d --build
 
 echo
 echo "ClipMate Relay is running."
-echo "Open: http://$(hostname -I | awk '{print $1}'):8080/"
+echo "Open: http://$(hostname -I | awk '{print $1}'):9673/"

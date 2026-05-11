@@ -22,13 +22,13 @@ https://raw.githubusercontent.com/KnxckbackWili/clipmate/main/clipmate-relay.xml
 
 安装时只填两个东西：
 
-- `Web UI Port`: 默认 `8080`
+- `Web UI Port`: 默认 `9673`
 - `Token`: 随机长密码，可以用 `openssl rand -hex 32` 生成
 
 安装后打开：
 
 ```text
-http://你的-unraid-ip:8080/
+http://你的-unraid-ip:9673/
 ```
 
 如果你想更进一步变成 Community Applications 里能搜到的应用，需要把模板提交到 Unraid 社区模板仓库；自用的话，raw XML URL 已经够用了。
