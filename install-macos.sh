@@ -25,6 +25,7 @@ fi
 
 rm -rf "$DEST/$APP_NAME"
 ditto "$TMP_DIR/$APP_NAME" "$DEST/$APP_NAME"
+codesign --force --deep --sign - "$DEST/$APP_NAME" >/dev/null 2>&1 || true
 xattr -dr com.apple.quarantine "$DEST/$APP_NAME" 2>/dev/null || true
 
 echo "Opening ClipMate..."
