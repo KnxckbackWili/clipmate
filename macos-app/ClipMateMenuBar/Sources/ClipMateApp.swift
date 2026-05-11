@@ -256,16 +256,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
-        statusItem.button?.title = "ClipMate"
+        statusItem.button?.title = "CM"
         rebuildMenu()
         engine.statusChanged = { [weak self] status in
             DispatchQueue.main.async {
                 self?.status = status
-                self?.statusItem.button?.title = status == "Connected" ? "ClipMate" : "ClipMate: \(status)"
+                self?.statusItem.button?.title = status == "Connected" ? "CM" : "CM"
                 self?.rebuildMenu()
             }
         }
         engine.start()
+        if Settings.shared.server.isEmpty || Settings.shared.token.isEmpty {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+                self?.openSettings()
+            }
+        }
     }
 
     private func rebuildMenu() {
