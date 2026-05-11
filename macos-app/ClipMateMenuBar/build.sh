@@ -10,9 +10,8 @@ MACOS_DIR="$APP_DIR/Contents/MacOS"
 rm -rf "$BUILD_DIR"
 mkdir -p "$MACOS_DIR"
 
-swiftc "$ROOT_DIR/Sources/ClipMateApp.swift" \
+swiftc "$ROOT_DIR/Sources/ClipMateApp.swift" "$ROOT_DIR/Sources/main.swift" \
   -O \
-  -parse-as-library \
   -framework AppKit \
   -o "$MACOS_DIR/$APP_NAME"
 

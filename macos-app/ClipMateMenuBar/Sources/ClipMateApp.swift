@@ -207,6 +207,8 @@ final class SettingsWindowController: NSWindowController {
         let view = NSView(frame: NSRect(x: 0, y: 0, width: 460, height: 240))
         let window = NSWindow(contentRect: view.frame, styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.title = "ClipMate Settings"
+        window.isReleasedWhenClosed = false
+        window.center()
         super.init(window: window)
         window.contentView = view
         build(view)
@@ -247,7 +249,6 @@ final class SettingsWindowController: NSWindowController {
     }
 }
 
-@main
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let engine = SyncEngine()
@@ -269,6 +270,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
             self?.openSettings()
         }
+    }
+
+    func applicationDidBecomeActive(_ notification: Notification) {
+        openSettings()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -296,8 +301,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openSettings() {
         settingsWindow = settingsWindow ?? SettingsWindowController()
+        settingsWindow?.window?.center()
         settingsWindow?.showWindow(nil)
         settingsWindow?.window?.makeKeyAndOrderFront(nil)
+        settingsWindow?.window?.orderFrontRegardless()
         NSApp.activate(ignoringOtherApps: true)
     }
 
