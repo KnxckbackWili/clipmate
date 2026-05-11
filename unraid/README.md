@@ -8,10 +8,16 @@ Unraid 真正“一键安装”的前提是：服务端镜像已经发布到公�
 ghcr.io/knxckbackwili/clipmate-relay:latest
 ```
 
-之后 Unraid 里只需要添加这个模板 URL：
+之后 Unraid 里优先添加这个模板仓库 URL：
 
 ```text
-https://raw.githubusercontent.com/KnxckbackWili/clipmate/main/unraid/clipmate-relay.xml
+https://github.com/KnxckbackWili/clipmate
+```
+
+如果你的 Unraid 页面要求填单个 XML 文件 URL，用这个：
+
+```text
+https://raw.githubusercontent.com/KnxckbackWili/clipmate/main/clipmate-relay.xml
 ```
 
 安装时只填两个东西：

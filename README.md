@@ -40,7 +40,13 @@ ghcr.io/knxckbackwili/clipmate-relay:latest
 4. 在 Unraid 里添加模板 URL：
 
 ```text
-https://raw.githubusercontent.com/KnxckbackWili/clipmate/main/unraid/clipmate-relay.xml
+https://github.com/KnxckbackWili/clipmate
+```
+
+如果你的 Unraid 版本要填单个 XML 文件 URL，用这个：
+
+```text
+https://raw.githubusercontent.com/KnxckbackWili/clipmate/main/clipmate-relay.xml
 ```
 
 之后安装时只需要填 `Token`，端口默认 `8080`。更详细说明在 [unraid/README.md](/Users/knxckbackwili/Documents/New%20project/unraid/README.md)。
