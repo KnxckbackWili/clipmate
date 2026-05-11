@@ -127,6 +127,12 @@ unraid/clipmate-relay.xml
 
 ## Mac 安装
 
+### 直接安装
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/KnxckbackWili/clipmate/main/install-macos.sh)"
+```
+
 ### 原生菜单栏 App
 
 构建：
@@ -191,6 +197,14 @@ tail -f /tmp/clipmate.out.log /tmp/clipmate.err.log
 ```
 
 ## Windows 安装
+
+### 直接安装
+
+在 PowerShell 里运行：
+
+```powershell
+irm https://raw.githubusercontent.com/KnxckbackWili/clipmate/main/install-windows.ps1 | iex
+```
 
 ### 托盘 GUI
 
