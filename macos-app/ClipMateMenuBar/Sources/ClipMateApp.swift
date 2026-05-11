@@ -137,6 +137,10 @@ final class RelayClient {
         let body = try JSONEncoder().encode(put)
         let _: ClipState? = try await request("PUT", "/v1/rooms/\(escaped(settings.room))/clip", body: body)
     }
+
+    func testConnection() async throws {
+        _ = try await heartbeat(paused: Settings.shared.paused)
+    }
 }
 
 final class SyncEngine {
@@ -202,9 +206,10 @@ final class SettingsWindowController: NSWindowController {
     private let token = NSSecureTextField()
     private let room = NSTextField()
     private let secret = NSSecureTextField()
+    private let statusLabel = NSTextField(labelWithString: "")
 
     init() {
-        let view = NSView(frame: NSRect(x: 0, y: 0, width: 460, height: 240))
+        let view = NSView(frame: NSRect(x: 0, y: 0, width: 460, height: 268))
         let window = NSWindow(contentRect: view.frame, styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.title = "ClipMate Settings"
         window.isReleasedWhenClosed = false
@@ -228,8 +233,12 @@ final class SettingsWindowController: NSWindowController {
             view.addSubview(label)
             view.addSubview(fields[i])
         }
-        let save = NSButton(title: "Save", target: self, action: #selector(saveSettings))
-        save.frame = NSRect(x: 334, y: 18, width: 96, height: 32)
+        statusLabel.frame = NSRect(x: 24, y: 58, width: 406, height: 22)
+        statusLabel.textColor = .secondaryLabelColor
+        view.addSubview(statusLabel)
+
+        let save = NSButton(title: "Save & Test", target: self, action: #selector(saveSettings))
+        save.frame = NSRect(x: 304, y: 18, width: 126, height: 32)
         view.addSubview(save)
     }
 
@@ -241,11 +250,42 @@ final class SettingsWindowController: NSWindowController {
     }
 
     @objc private func saveSettings() {
-        Settings.shared.server = server.stringValue
-        Settings.shared.token = token.stringValue
-        Settings.shared.room = room.stringValue
+        Settings.shared.server = normalizeServer(server.stringValue)
+        Settings.shared.token = token.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        Settings.shared.room = room.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         Settings.shared.secret = secret.stringValue
-        window?.close()
+        server.stringValue = Settings.shared.server
+        statusLabel.stringValue = "Testing..."
+
+        Task { @MainActor in
+            do {
+                try await RelayClient().testConnection()
+                statusLabel.stringValue = "Connected"
+                showAlert(title: "ClipMate Connected", message: "Server, token, and room are working.")
+            } catch {
+                statusLabel.stringValue = "Connection failed"
+                showAlert(title: "Connection Failed", message: error.localizedDescription)
+            }
+        }
+    }
+
+    private func normalizeServer(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "：", with: ":")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard !trimmed.isEmpty else { return "" }
+        if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
+            return trimmed
+        }
+        return "http://\(trimmed)"
+    }
+
+    private func showAlert(title: String, message: String) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = title.contains("Failed") ? .warning : .informational
+        alert.runModal()
     }
 }
 
