@@ -111,8 +111,13 @@ final class RelayClient {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw NSError(domain: "ClipMate", code: 4, userInfo: [NSLocalizedDescriptionKey: "Relay request failed"])
+        guard let http = response as? HTTPURLResponse else {
+            throw NSError(domain: "ClipMate", code: 4, userInfo: [NSLocalizedDescriptionKey: "Relay did not return an HTTP response"])
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            let detail = String(data: data, encoding: .utf8) ?? ""
+            let message = detail.isEmpty ? "HTTP \(http.statusCode)" : "HTTP \(http.statusCode): \(detail)"
+            throw NSError(domain: "ClipMate", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: message])
         }
         if data.isEmpty || String(data: data, encoding: .utf8) == "null" { return nil }
         return try JSONDecoder().decode(T.self, from: data)
@@ -285,7 +290,11 @@ final class SettingsWindowController: NSWindowController {
         alert.messageText = title
         alert.informativeText = message
         alert.alertStyle = title.contains("Failed") ? .warning : .informational
-        alert.runModal()
+        if let window {
+            alert.beginSheetModal(for: window)
+        } else {
+            alert.runModal()
+        }
     }
 }
 
