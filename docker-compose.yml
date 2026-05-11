@@ -1,0 +1,11 @@
+services:
+  clipmate-relay:
+    image: "${CLIPMATE_IMAGE:-clipmate-relay:local}"
+    build: ./server
+    container_name: clipmate-relay
+    restart: unless-stopped
+    environment:
+      CLIPMATE_TOKEN: "${CLIPMATE_TOKEN}"
+      CLIPMATE_MAX_BYTES: "524288"
+    ports:
+      - "8080:8080"
