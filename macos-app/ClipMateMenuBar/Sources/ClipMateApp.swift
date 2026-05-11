@@ -255,7 +255,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var settingsWindow: SettingsWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
+        NSApp.setActivationPolicy(.regular)
         statusItem.button?.title = "CM"
         rebuildMenu()
         engine.statusChanged = { [weak self] status in
@@ -266,11 +266,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         engine.start()
-        if Settings.shared.server.isEmpty || Settings.shared.token.isEmpty {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
-                self?.openSettings()
-            }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+            self?.openSettings()
         }
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        openSettings()
+        return true
     }
 
     private func rebuildMenu() {
@@ -294,6 +297,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func openSettings() {
         settingsWindow = settingsWindow ?? SettingsWindowController()
         settingsWindow?.showWindow(nil)
+        settingsWindow?.window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
 
