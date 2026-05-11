@@ -5,7 +5,9 @@ param(
   [Parameter(Mandatory = $true)]
   [string]$Token,
 
-  [string]$Room = "default"
+  [string]$Room = "default",
+
+  [string]$Secret = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -24,6 +26,7 @@ $Argument = @(
   "-Server", "`"$Server`"",
   "-Token", "`"$Token`"",
   "-Room", "`"$Room`"",
+  "-Secret", "`"$Secret`"",
   "*>", "`"$LogPath`""
 ) -join " "
 

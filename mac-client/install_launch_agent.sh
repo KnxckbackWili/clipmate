@@ -2,14 +2,15 @@
 set -euo pipefail
 
 if [[ $# -lt 2 ]]; then
-  echo "Usage: $0 <server-url> <token> [room]" >&2
-  echo "Example: $0 https://clip.example.com 'long-random-token' home" >&2
+  echo "Usage: $0 <server-url> <token> [room] [encryption-secret]" >&2
+  echo "Example: $0 https://clip.example.com 'long-random-token' home 'shared-secret'" >&2
   exit 1
 fi
 
 SERVER_URL="$1"
 TOKEN="$2"
 ROOM="${3:-default}"
+SECRET="${4:-}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLIST="$HOME/Library/LaunchAgents/com.clipmate.client.plist"
 
@@ -36,6 +37,8 @@ cat > "$PLIST" <<PLIST
     <string>${TOKEN}</string>
     <key>CLIPMATE_ROOM</key>
     <string>${ROOM}</string>
+    <key>CLIPMATE_SECRET</key>
+    <string>${SECRET}</string>
   </dict>
   <key>RunAtLoad</key>
   <true/>

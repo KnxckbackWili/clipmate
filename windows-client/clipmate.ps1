@@ -3,6 +3,7 @@ param(
   [string]$Token = $env:CLIPMATE_TOKEN,
   [string]$Room = $(if ($env:CLIPMATE_ROOM) { $env:CLIPMATE_ROOM } else { "default" }),
   [string]$Device = $(if ($env:CLIPMATE_DEVICE) { $env:CLIPMATE_DEVICE } else { $env:COMPUTERNAME }),
+  [string]$Secret = $env:CLIPMATE_SECRET,
   [double]$PollSeconds = $(if ($env:CLIPMATE_POLL_SECONDS) { [double]$env:CLIPMATE_POLL_SECONDS } else { 0.8 }),
   [int]$MaxChars = $(if ($env:CLIPMATE_MAX_CHARS) { [int]$env:CLIPMATE_MAX_CHARS } else { 524288 }),
   [string]$PauseFile = $(if ($env:CLIPMATE_PAUSE_FILE) { $env:CLIPMATE_PAUSE_FILE } else { Join-Path $env:LOCALAPPDATA "ClipMate\paused" })
@@ -34,6 +35,80 @@ function Get-TextHash {
   finally {
     $Sha.Dispose()
   }
+}
+
+function Get-KeyBytes {
+  param([string]$Text)
+
+  $Sha = [System.Security.Cryptography.SHA256]::Create()
+  try {
+    return $Sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($Text))
+  }
+  finally {
+    $Sha.Dispose()
+  }
+}
+
+function Protect-ClipText {
+  param([string]$Text)
+
+  if ([string]::IsNullOrEmpty($Secret)) {
+    return $Text
+  }
+  if (-not ("System.Security.Cryptography.AesGcm" -as [type])) {
+    throw "CLIPMATE_SECRET requires PowerShell 7 or newer."
+  }
+
+  $Nonce = New-Object byte[] 12
+  [System.Security.Cryptography.RandomNumberGenerator]::Fill($Nonce)
+  $Plain = [System.Text.Encoding]::UTF8.GetBytes($Text)
+  $Cipher = New-Object byte[] $Plain.Length
+  $Tag = New-Object byte[] 16
+  $Aes = [System.Security.Cryptography.AesGcm]::new((Get-KeyBytes $Secret))
+  try {
+    $Aes.Encrypt($Nonce, $Plain, $Cipher, $Tag)
+  }
+  finally {
+    $Aes.Dispose()
+  }
+
+  $Combined = New-Object byte[] ($Nonce.Length + $Cipher.Length + $Tag.Length)
+  [Array]::Copy($Nonce, 0, $Combined, 0, $Nonce.Length)
+  [Array]::Copy($Cipher, 0, $Combined, $Nonce.Length, $Cipher.Length)
+  [Array]::Copy($Tag, 0, $Combined, $Nonce.Length + $Cipher.Length, $Tag.Length)
+  return (@{ v = 1; alg = "AES-256-GCM-SHA256"; data = [Convert]::ToBase64String($Combined) } | ConvertTo-Json -Compress)
+}
+
+function Unprotect-ClipText {
+  param([string]$Payload)
+
+  if ([string]::IsNullOrEmpty($Secret)) {
+    return $Payload
+  }
+  if (-not ("System.Security.Cryptography.AesGcm" -as [type])) {
+    throw "CLIPMATE_SECRET requires PowerShell 7 or newer."
+  }
+
+  $Envelope = $Payload | ConvertFrom-Json
+  if ($Envelope.v -ne 1 -or $Envelope.alg -ne "AES-256-GCM-SHA256") {
+    throw "Encrypted payload requires the same CLIPMATE_SECRET."
+  }
+  $Combined = [Convert]::FromBase64String([string]$Envelope.data)
+  $Nonce = New-Object byte[] 12
+  $Tag = New-Object byte[] 16
+  $Cipher = New-Object byte[] ($Combined.Length - 28)
+  [Array]::Copy($Combined, 0, $Nonce, 0, 12)
+  [Array]::Copy($Combined, 12, $Cipher, 0, $Cipher.Length)
+  [Array]::Copy($Combined, 12 + $Cipher.Length, $Tag, 0, 16)
+  $Plain = New-Object byte[] $Cipher.Length
+  $Aes = [System.Security.Cryptography.AesGcm]::new((Get-KeyBytes $Secret))
+  try {
+    $Aes.Decrypt($Nonce, $Cipher, $Tag, $Plain)
+  }
+  finally {
+    $Aes.Dispose()
+  }
+  return [System.Text.Encoding]::UTF8.GetString($Plain)
 }
 
 function Get-ClipboardTextSafe {
@@ -81,10 +156,11 @@ function Push-Clip {
   )
 
   $EscapedRoom = [uri]::EscapeDataString($Room)
+  $Payload = Protect-ClipText $Text
   Invoke-ClipmateRequest -Method "PUT" -Path "/v1/rooms/$EscapedRoom/clip" -Body @{
-    text = $Text
+    text = $Payload
     device = $Device
-    hash = $Hash
+    hash = Get-TextHash $Payload
   } | Out-Null
 }
 
@@ -139,8 +215,8 @@ while ($true) {
 
     $Remote = Pull-Clip
     if ($null -ne $Remote -and $Remote.device -ne $Device) {
-      $RemoteText = [string]$Remote.text
-      $RemoteHash = if ($Remote.hash) { [string]$Remote.hash } else { Get-TextHash $RemoteText }
+      $RemoteText = Unprotect-ClipText ([string]$Remote.text)
+      $RemoteHash = Get-TextHash $RemoteText
       $CurrentHash = Get-TextHash (Get-ClipboardTextSafe)
 
       if (-not [string]::IsNullOrEmpty($RemoteText) -and $RemoteHash -ne $CurrentHash) {

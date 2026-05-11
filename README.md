@@ -127,6 +127,29 @@ unraid/clipmate-relay.xml
 
 ## Mac 安装
 
+### 原生菜单栏 App
+
+构建：
+
+```bash
+cd "/Users/knxckbackwili/Documents/New project"
+./macos-app/ClipMateMenuBar/build.sh
+open "./macos-app/ClipMateMenuBar/build/ClipMate.app"
+```
+
+启动后菜单栏会出现 `ClipMate`。在 `Settings...` 里填：
+
+```text
+Server: http://你的-unraid-ip:9673
+Token: 你的长token
+Room: home
+Encryption Secret: 你自己的共享加密密钥
+```
+
+`Encryption Secret` 为空时是不加密同步；不为空时启用端到端加密。所有设备必须填同一个密钥。
+
+### 脚本后台版
+
 在两台 Mac 上分别运行：
 
 ```bash
@@ -138,7 +161,13 @@ chmod +x install_launch_agent.sh uninstall_launch_agent.sh clipmate.py
 如果你还没配 HTTPS，只在内网测试，可以临时用：
 
 ```bash
-./install_launch_agent.sh "http://unraid-ip:9673" "你的长token" "home"
+./install_launch_agent.sh "http://unraid-ip:9673" "你的长token" "home" "你的共享加密密钥"
+```
+
+脚本后台版启用加密前需要安装依赖：
+
+```bash
+python3 -m pip install -r requirements.txt
 ```
 
 查看日志：
@@ -163,6 +192,40 @@ tail -f /tmp/clipmate.out.log /tmp/clipmate.err.log
 
 ## Windows 安装
 
+### 托盘 GUI
+
+Windows 托盘版需要 PowerShell 7，因为加密同步使用系统 `.NET` 的 AES-GCM。
+
+在 PowerShell 7 里运行：
+
+```powershell
+cd windows-client\gui
+.\clipmate-tray.ps1
+```
+
+右下角托盘会出现 ClipMate，右键可以暂停/恢复、打开设置、退出。设置里填：
+
+```text
+Server: http://你的-unraid-ip:9673
+Token: 你的长token
+Room: home
+Encryption Secret: 你自己的共享加密密钥
+```
+
+开机启动：
+
+```powershell
+.\install_startup.ps1
+```
+
+取消开机启动：
+
+```powershell
+.\uninstall_startup.ps1
+```
+
+### 脚本后台版
+
 在 Windows PowerShell 中进入 `windows-client` 目录，然后运行：
 
 ```powershell
@@ -173,7 +236,7 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 如果还没配 HTTPS，只在内网测试，可以临时用：
 
 ```powershell
-.\install_scheduled_task.ps1 -Server "http://unraid-ip:9673" -Token "你的长token" -Room "home"
+.\install_scheduled_task.ps1 -Server "http://unraid-ip:9673" -Token "你的长token" -Room "home" -Secret "你的共享加密密钥"
 ```
 
 查看任务：
@@ -219,11 +282,10 @@ Get-Content "$env:LOCALAPPDATA\ClipMate\clipmate.log" -Wait
 - 服务端只在内存里保存每个 room 的最后一条文本，容器重启后清空。
 - 服务端不主动落盘剪切板内容。
 - 当前版本依赖 HTTPS 保护传输内容，token 负责访问控制。
-- 如果要做到“服务器也看不见内容”，下一步可以加端到端加密。
+- 设置 `Encryption Secret` / `CLIPMATE_SECRET` 后启用端到端加密，服务器只能看到密文、设备名、room、时间和大小。
+- 端到端加密协议见 [docs/encryption.md](/Users/knxckbackwili/Documents/New%20project/docs/encryption.md)。
 
 ## 下一步可升级
 
-- 做成原生 macOS 菜单栏 App，可以暂停同步、切换房间、显示连接状态。
-- 增加端到端加密。
 - 支持图片剪切板。
 - 增加剪切板历史，但需要更认真处理隐私和清理策略。
