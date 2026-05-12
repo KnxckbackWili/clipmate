@@ -12,6 +12,7 @@ mkdir -p "$MACOS_DIR"
 
 swiftc "$ROOT_DIR/Sources/ClipMateApp.swift" "$ROOT_DIR/Sources/main.swift" \
   -O \
+  -module-cache-path "$BUILD_DIR/module-cache" \
   -framework AppKit \
   -o "$MACOS_DIR/$APP_NAME"
 
@@ -29,6 +30,13 @@ cat > "$APP_DIR/Contents/Info.plist" <<PLIST
   <string>$APP_NAME</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
+  <key>NSAppTransportSecurity</key>
+  <dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+    <key>NSAllowsLocalNetworking</key>
+    <true/>
+  </dict>
   <key>NSHighResolutionCapable</key>
   <true/>
 </dict>
