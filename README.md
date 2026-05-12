@@ -18,6 +18,49 @@ Mac / Windows  <----HTTPS---->  Unraid / 公网 IP / 反代  <----HTTPS---->  Ma
 
 ## Unraid 部署
 
+### 一个容器直接 HTTPS
+
+如果 `443` 不能用，但你想用：
+
+```text
+https://arrowwood.com:9673
+```
+
+可以让 ClipMate 容器自己跑 HTTPS。路由器需要转发：
+
+```text
+公网 80   -> Unraid 192.168.1.137:80
+公网 9673 -> Unraid 192.168.1.137:9673
+```
+
+然后启动：
+
+```bash
+docker rm -f ClipMate-Relay 2>/dev/null || true
+
+docker run -d \
+  --name ClipMate-Relay \
+  --restart unless-stopped \
+  --network bridge \
+  -p 80:80/tcp \
+  -p 9673:9673/tcp \
+  -v /mnt/user/appdata/clipmate/caddy-data:/data \
+  -v /mnt/user/appdata/clipmate/caddy-config:/config \
+  -e TZ="Asia/Shanghai" \
+  -e CLIPMATE_DOMAIN="arrowwood.com" \
+  -e CLIPMATE_TOKEN="你的长token" \
+  -e CLIPMATE_MAX_BYTES="524288" \
+  ghcr.io/knxckbackwili/clipmate-relay:latest
+```
+
+Mac App 的 Server 填：
+
+```text
+https://arrowwood.com:9673
+```
+
+注意：`80` 是自动申请 HTTPS 证书用的。如果 `80` 也不能从公网访问，需要改用 DNS 验证或 Cloudflare Tunnel。
+
 ### 最省事：一个模板 URL 安装
 
 可以做到你说的那种“一个网址就好”。但这个网址必须指向一个公网 Unraid 模板 XML，而且 Docker 镜像也必须已经发布到公网镜像仓库。

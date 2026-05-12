@@ -1,0 +1,8 @@
+{
+    http_port {$CLIPMATE_HTTP_PORT}
+    https_port {$CLIPMATE_HTTPS_PORT}
+}
+
+https://{$CLIPMATE_DOMAIN}:{$CLIPMATE_HTTPS_PORT} {
+    reverse_proxy 127.0.0.1:8080
+}
